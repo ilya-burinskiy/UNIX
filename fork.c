@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -11,11 +13,9 @@
 #define NUMBER_OF_SORTS 3
 typedef enum { QUICK, MERGE, BUBBLE } sort_type;
 
-
-pid_t spawn_sort_process(sort_type t);
-void spawn_quick_sort_process();
-void spawn_bubble_sort_process();
-void spawn_merge_sort_process();
+void quick_sort_process();
+void bubble_sort_process();
+void merge_sort_process();
 
 void fill_array(int* array, int size);
 
@@ -28,57 +28,74 @@ void main(int argc, char** argv)
   fill_array(array, N);
 
   for (int i = 0; i < NUMBER_OF_SORTS; ++i)
-    children[i] = spawn_sort_process((sort_type) i);
+  {
+    pid_t pid = fork();
+
+    switch (pid)
+    {
+    case 0:
+      switch ((sort_type) i)
+      {
+      case QUICK:  quick_sort_process();  break;
+      case MERGE:  merge_sort_process();  break;
+      case BUBBLE: bubble_sort_process(); break;
+
+      default:
+        break;
+      }
+      break;
+
+    case -1:
+      perror("Error in fork()");
+      exit(1);
+      break;
+    
+    default:
+      children[i] = pid;
+      break;
+    }
+  }
 
   for (int i = 0; i < NUMBER_OF_SORTS; ++i)
     wait(NULL);
 }
 
-pid_t spawn_sort_process(sort_type t)
-{
-  pid_t pid = fork();
-
-  switch (pid)
-  {
-  case 0:
-    return pid;
-    break;
-
-  case -1:
-    perror("Error in fork()");
-    exit(1);
-    break;
-  
-  default:
-    switch (t)
-    {
-    case QUICK:  spawn_quick_sort_process();  break;
-    case MERGE:  spawn_merge_sort_process();  break;
-    case BUBBLE: spawn_bubble_sort_process(); break;
-
-    default:
-      break;
-    }
-    break;
-  }
-}
-
 void fill_array(int* array, int size)
 {
-
+  srand(time(NULL));
+  for (int i = 0; i < size; ++i)
+    array[i] = rand() % 100;
 }
 
-void spawn_quick_sort_process()
+void quick_sort_process()
 {
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
+  quick_sort(array, N);
+  gettimeofday(&end, NULL);
 
+  printf("Time for quick sort: %lu\n", (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec);
+  exit(0); 
 }
 
-void spawn_merge_sort_process()
+void merge_sort_process()
 {
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
+  merge_sort(array, N);
+  gettimeofday(&end, NULL);
 
+  printf("Time for merge sort: %lu\n", (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec);
+  exit(0);
 }
 
-void spawn_bubble_sort_process()
+void bubble_sort_process()
 {
-  
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
+  bubble_sort(array, N);
+  gettimeofday(&end, NULL);
+
+  printf("Time for bubble sort: %lu\n", (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec);
+  exit(0);
 }
