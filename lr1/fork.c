@@ -9,7 +9,7 @@
 
 #include "sorts.h"
 
-#define N 100000
+#define N 100
 #define NUMBER_OF_SORTS 3
 typedef enum { QUICK, MERGE, BUBBLE } sort_type;
 
@@ -57,7 +57,9 @@ void main(int argc, char** argv)
   }
 
   for (int i = 0; i < NUMBER_OF_SORTS; ++i)
-    wait(NULL);
+  {
+    waitpid(children[i], NULL, 0);
+  }
 }
 
 void fill_array(int* array, int size)
@@ -75,7 +77,7 @@ void quick_sort_process()
   gettimeofday(&end, NULL);
 
   printf("Time for quick sort: %lu\n", (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec);
-  exit(0); 
+  exit(0);
 }
 
 void merge_sort_process()
